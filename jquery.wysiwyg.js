@@ -67,6 +67,9 @@
             {
                 this.original = element;
 
+                if ( newX == 0 && element.cols )
+                    newX = element.cols * 8;
+
                 var editor = this.editor = $('<iframe></iframe>').css({
                     minHeight : ( newY - 8 ).toString() + 'px',
                     width     : ( newX - 8 ).toString() + 'px'
@@ -185,7 +188,7 @@
             });
 
             this.element = $('<div></div>').css({
-                width : ( newX ).toString() + 'px'
+                width : ( newX > 0 ) ? ( newX ).toString() + 'px' : '100%'
             }).addClass('wysiwyg')
               .append(panel)
               .append( $('<div><!-- --></div>').css({ clear : 'both' }) )
@@ -205,6 +208,16 @@
 
             if ( this.initialContent.length == 0 )
                 this.setContent('<br />');
+
+            var self = this;
+
+            $('form').each(function()
+            {
+                $(this).submit(function()
+                {
+                    self.saveContent();
+                });
+            });
         },
 
         initFrame : function()
@@ -216,7 +229,29 @@
             );
             this.editorDoc.close();
             this.editorDoc.contentEditable = 'true';
-            this.editorDoc.designMode = 'on';
+
+            this.editorDoc_designMode = false;
+
+            try {
+                this.editorDoc.designMode = 'on';
+                this.editorDoc_designMode = true;
+            } catch ( e ) {
+                var self = this;
+
+                // Will fail on Gecko if the editor is placed in an hidden container element
+                // The design mode will be set ones the editor is focused
+
+                $(this.editorDoc).focus(function()
+                {
+                    if ( !( self.editorDoc_designMode ) )
+                    {
+                        try {
+                            self.editorDoc.designMode = 'on';
+                            self.editorDoc_designMode = true;
+                        } catch ( e ) {}
+                    }
+                });
+            }
         },
 
         getContent : function()
