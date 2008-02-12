@@ -224,13 +224,12 @@
 
             var self = this;
 
-            $('form').each(function()
-            {
-                $(this).submit(function()
-                {
-                    self.saveContent();
-                });
-            });
+            /**
+             * @link http://code.google.com/p/jwysiwyg/issues/detail?id=11
+             */
+            $('form').submit(function() { self.saveContent(); });
+            $( $(this.editor).document() ).keydown(function() { self.saveContent(); });
+            $( $(this.editor).document() ).mousedown(function() { self.saveContent(); });
         },
 
         initFrame : function()
