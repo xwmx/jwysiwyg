@@ -29,8 +29,18 @@
     $.fn.wysiwyg = function( options )
     {
         var options = $.extend({
-            debug : false,
-            html  : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>'
+            debug  : false,
+            html   : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
+            target : {
+                bold : {
+                    tags : ['b', 'strong'],
+                    css  : { fontWeight : 'bold' }
+                },
+                italic : {
+                    tags : ['i', 'em'],
+                    css  : { fontStyle : 'italic' }
+                }
+            }
         }, options);
 
         // not break the chain
@@ -68,10 +78,13 @@
                 this.original = element;
 
                 if ( newX == 0 && element.cols )
-                    newX = element.cols * 8;
+                    newX = ( element.cols * 8 ) + 21;
+
+                if ( newY == 0 && element.rows )
+                    newY = ( element.rows * 16 ) + 16;
 
                 var editor = this.editor = $('<iframe></iframe>').css({
-                    minHeight : ( newY - 8 ).toString() + 'px',
+                    minHeight : ( newY - 6 ).toString() + 'px',
                     width     : ( newX - 8 ).toString() + 'px'
                 }).attr('id', $(element).attr('id') + 'IFrame');
 
@@ -82,7 +95,7 @@
 
                     /**
                     var editor = $('<span></span>').css({
-                        width     : ( newX - 8 ).toString() + 'px',
+                        width     : ( newX - 6 ).toString() + 'px',
                         height    : ( newY - 8 ).toString() + 'px'
                     }).attr('id', $(element).attr('id') + 'IFrame');
 
@@ -252,6 +265,16 @@
                     }
                 });
             }
+
+            if ( this.options.target )
+            {
+                var self = this;
+
+                $(this.editorDoc).click(function( event )
+                {
+                    self.checkTargets(event.target);
+                });
+            }
         },
 
         getContent : function()
@@ -285,6 +308,40 @@
         appendMenuSeparator : function()
         {
             $('<li class="separator"></li>').appendTo( this.panel );
+        },
+
+        checkTargets : function( element )
+        {
+            for ( className in this.options.target )
+            {
+                $('.' + className, this.panel).removeClass('active');
+
+                if ( this.options.target[className].tags )
+                {
+                    var elm = element;
+
+                    do {
+                        if ( elm.nodeType != 1 )
+                            break;
+
+                        if ( $.inArray(elm.tagName.toLowerCase(), this.options.target[className].tags) != -1 )
+                            $('.' + className, this.panel).addClass('active');
+                    } while ( elm = elm.parentNode );
+                }
+
+                if ( this.options.target[className].css )
+                {
+                    var elm = $(element);
+
+                    for ( var cssProperty in this.options.target[className].css )
+                    {
+                        if ( elm.css(cssProperty).toString().toLowerCase() == this.options.target[className].css[cssProperty] )
+                            $('.' + className, this.panel).addClass('active');
+                    }
+                }
+            }
+
+            return false;
         }
     });
 })(jQuery);
