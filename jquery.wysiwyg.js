@@ -34,14 +34,127 @@
             debug    : false,
             autoSave : true,
 
-            target   : {
-                bold : {
-                    tags : ['b', 'strong'],
-                    css  : { fontWeight : 'bold' }
+            controls : {
+                bold          : { visible : true, tags : ['b', 'strong'], css : { fontWeight : 'bold' } },
+                italic        : { visible : true, tags : ['i', 'em'], css : { fontStyle : 'italic' } },
+                strikeThrough : { visible : false, tags : ['s', 'strike'], css : { textDecoration : 'line-through' } },
+                underline     : { visible : false, tags : ['u'], css : { textDecoration : 'underline' } },
+
+                separator00 : { visible : false, separator : true },
+
+                justifyLeft   : { visible : false, css : { textAlign : 'left' } },
+                justifyCenter : { visible : false, tags : ['center'], css : { textAlign : 'center' } },
+                justifyRight  : { visible : false, css : { textAlign : 'right' } },
+                justifyFull   : { visible : false, css : { textAlign : 'justify' } },
+
+                separator01 : { visible : false, separator : true },
+
+                indent  : { visible : false },
+                outdent : { visible : false },
+
+                separator02 : { visible : false, separator : true },
+
+                subscript   : { visible : false, tags : ['sub'] },
+                superscript : { visible : false, tags : ['sup'] },
+
+                separator03 : { visible : false, separator : true },
+
+                undo : { visible : false },
+                redo : { visible : false },
+
+                separator04 : { visible : false, separator : true },
+
+                insertOrderedList    : { visible : false, tags : ['ol'] },
+                insertUnorderedList  : { visible : false, tags : ['ul'] },
+                insertHorizontalRule : { visible : false, tags : ['hr'] },
+
+                separator05 : { separator : true },
+
+                createLink : {
+                    visible : true,
+                    exec    : function( self )
+                    {
+                        if ( $.browser.msie )
+                            self.editorDoc.execCommand('createLink', true, null);
+                        else
+                        {
+                            var szURL = prompt('URL', 'http://');
+
+                            if ( szURL && szURL.length > 0 )
+                                self.editorDoc.execCommand('createLink', false, szURL);
+                        }
+                    },
+
+                    tags : ['a']
                 },
-                italic : {
-                    tags : ['i', 'em'],
-                    css  : { fontStyle : 'italic' }
+
+                insertImage : {
+                    visible : true,
+                    exec    : function( self )
+                    {
+                        if ( $.browser.msie )
+                            self.editorDoc.execCommand('insertImage', true, null);
+                        else
+                        {
+                            var szURL = prompt('URL', 'http://');
+
+                            if ( szURL && szURL.length > 0 )
+                                self.editorDoc.execCommand('insertImage', false, szURL);
+                        }
+                    },
+
+                    tags : ['img']
+                },
+
+                separator06 : { separator : true },
+
+                h1mozilla : { visible : true && $.browser.mozilla, className : 'h1', command : 'heading', arguments : ['h1'], tags : ['h1'] },
+                h2mozilla : { visible : true && $.browser.mozilla, className : 'h2', command : 'heading', arguments : ['h2'], tags : ['h2'] },
+                h3mozilla : { visible : true && $.browser.mozilla, className : 'h3', command : 'heading', arguments : ['h3'], tags : ['h3'] },
+
+                h1 : { visible : true && !( $.browser.mozilla ), className : 'h1', command : 'formatBlock', arguments : ['h1'], tags : ['h1'] },
+                h2 : { visible : true && !( $.browser.mozilla ), className : 'h2', command : 'formatBlock', arguments : ['h2'], tags : ['h2'] },
+                h3 : { visible : true && !( $.browser.mozilla ), className : 'h3', command : 'formatBlock', arguments : ['h3'], tags : ['h3'] },
+
+                separator07 : { visible : false, separator : true },
+
+                cut   : { visible : false },
+                copy  : { visible : false },
+                paste : { visible : false },
+
+                separator08 : { separator : true && !( $.browser.msie ) },
+
+                increaseFontSize : { visible : true && !( $.browser.msie ), tags : ['big'] },
+                decreaseFontSize : { visible : true && !( $.browser.msie ), tags : ['small'] },
+
+                separator09 : { separator : true },
+
+                html : {
+                    visible : true,
+                    exec    : function( self )
+                    {
+                        if ( self.viewHTML )
+                        {
+                            self.setContent( $(self.original).val() );
+                            $(self.original).hide();
+                        }
+                        else
+                        {
+                            self.saveContent();
+                            $(self.original).show();
+                        }
+
+                        self.viewHTML = !( self.viewHTML );
+                    }
+                },
+
+                removeFormat : {
+                    visible : true,
+                    exec    : function( self )
+                    {
+                        self.editorDoc.execCommand('removeFormat', false, []);
+                        self.editorDoc.execCommand('unlink', false, []);
+                    }
                 }
             }
         }, options);
@@ -111,100 +224,7 @@
 
             var panel = this.panel = $('<ul></ul>').addClass('panel');
 
-            this.appendMenu('bold');
-            this.appendMenu('italic');
-            // this.appendMenu('strikeThrough');
-            // this.appendMenu('underline');
-
-            this.appendMenuSeparator();
-            this.appendMenu('justifyLeft');
-            this.appendMenu('justifyCenter');
-            this.appendMenu('justifyRight');
-            this.appendMenu('justifyFull');
-
-            // this.appendMenu('indent');
-            // this.appendMenu('outdent');
-
-            // this.appendMenuSeparator();
-            // this.appendMenu('subscript');
-            // this.appendMenu('superscript');
-
-            // this.appendMenuSeparator();
-            // this.appendMenu('undo');
-            // this.appendMenu('redo');
-
-            this.appendMenuSeparator();
-            this.appendMenu('insertOrderedList');
-            this.appendMenu('insertUnorderedList');
-            // this.appendMenu('insertHorizontalRule');
-
-            if ( $.browser.msie )
-            {
-                this.appendMenu('createLink', [], null, function( self ) { self.editorDoc.execCommand('createLink', true, null); });
-                this.appendMenu('insertImage', [], null, function( self ) { self.editorDoc.execCommand('insertImage', true, null); });
-            }
-            else
-            {
-                this.appendMenu('createLink', [], null, function( self ) { var szURL = prompt('Ingrese una URL', 'http://'); if ( szURL && szURL.length > 0 ) self.editorDoc.execCommand('createLink', false, szURL); });
-                this.appendMenu('insertImage', [], null, function( self ) { var szURL = prompt('Ingrese una URL', 'http://'); if ( szURL && szURL.length > 0 ) self.editorDoc.execCommand('insertImage', false, szURL); });
-            }
-
-            if ( $.browser.mozilla )
-            {
-                this.appendMenuSeparator();
-                this.appendMenu('heading', ['h1'], 'h1');
-                this.appendMenu('heading', ['h2'], 'h2');
-                this.appendMenu('heading', ['h3'], 'h3');
-                // this.appendMenu('heading', ['h4'], 'h4');
-                // this.appendMenu('heading', ['h5'], 'h5');
-                // this.appendMenu('heading', ['h6'], 'h6');
-            }
-            else
-            {
-                this.appendMenuSeparator();
-                this.appendMenu('formatBlock', ['<h1>'], 'h1');
-                this.appendMenu('formatBlock', ['<h2>'], 'h2');
-                this.appendMenu('formatBlock', ['<h3>'], 'h3');
-                // this.appendMenu('formatBlock', ['<h4>'], 'h4');
-                // this.appendMenu('formatBlock', ['<h5>'], 'h5');
-                // this.appendMenu('formatBlock', ['<h6>'], 'h6');
-            }
-
-            // this.appendMenuSeparator();
-            // this.appendMenu('cut');
-            // this.appendMenu('copy');
-            // this.appendMenu('paste');
-
-            if ( !( $.browser.msie ) )
-            {
-                this.appendMenuSeparator();
-                this.appendMenu('increaseFontSize');
-                this.appendMenu('decreaseFontSize');
-            }
-
-            this.appendMenuSeparator();
-            this.appendMenu('html', [], null, function( self )
-            {
-                if ( self.viewHTML )
-                {
-                    self.setContent( $(self.original).val() );
-                    $(self.original).hide();
-                }
-                else
-                {
-                    self.saveContent();
-                    $(self.original).show();
-                }
-
-                self.viewHTML = !( self.viewHTML );
-            });
-
-            this.appendMenu('removeFormat', [], null, function( self )
-            {
-                self.editorDoc.execCommand('removeFormat', false, []);
-                self.editorDoc.execCommand('unlink', false, []);
-            });
-
+            this.appendControls();
             this.element = $('<div></div>').css({
                 width : ( newX > 0 ) ? ( newX ).toString() + 'px' : '100%'
             }).addClass('wysiwyg')
@@ -264,10 +284,10 @@
                 });
             }
 
-            if ( this.options.target )
+            $(this.editorDoc).click(function( event )
             {
-                $(this.editorDoc).click(function( event ) { self.checkTargets( event.target ? event.target : event.srcElement); });
-            }
+                self.checkTargets( event.target ? event.target : event.srcElement);
+            });
 
             if ( this.options.autoSave )
             {
@@ -313,13 +333,37 @@
             $('<li class="separator"></li>').appendTo( this.panel );
         },
 
+        appendControls : function()
+        {
+            for ( var name in this.options.controls )
+            {
+                var control = this.options.controls[name];
+
+                if ( control.separator )
+                {
+                    if ( control.visible !== false )
+                        this.appendMenuSeparator();
+                }
+                else if ( control.visible )
+                {
+                    this.appendMenu(
+                        control.command || name, control.arguments || [],
+                        control.className || control.command || name, control.exec
+                    );
+                }
+            }
+        },
+
         checkTargets : function( element )
         {
-            for ( className in this.options.target )
+            for ( var name in this.options.controls )
             {
+                var control = this.options.controls[name];
+                var className = control.className || control.command || name;
+
                 $('.' + className, this.panel).removeClass('active');
 
-                if ( this.options.target[className].tags )
+                if ( control.tags )
                 {
                     var elm = element;
 
@@ -327,20 +371,23 @@
                         if ( elm.nodeType != 1 )
                             break;
 
-                        if ( $.inArray(elm.tagName.toLowerCase(), this.options.target[className].tags) != -1 )
+                        if ( $.inArray(elm.tagName.toLowerCase(), control.tags) != -1 )
                             $('.' + className, this.panel).addClass('active');
                     } while ( elm = elm.parentNode );
                 }
 
-                if ( this.options.target[className].css )
+                if ( control.css )
                 {
                     var elm = $(element);
 
-                    for ( var cssProperty in this.options.target[className].css )
-                    {
-                        if ( elm.css(cssProperty).toString().toLowerCase() == this.options.target[className].css[cssProperty] )
-                            $('.' + className, this.panel).addClass('active');
-                    }
+                    do {
+                        if ( elm[0].nodeType != 1 )
+                            break;
+
+                        for ( var cssProperty in control.css )
+                            if ( elm.css(cssProperty).toString().toLowerCase() == control.css[cssProperty] )
+                                $('.' + className, this.panel).addClass('active');
+                    } while ( elm = elm.parent() );
                 }
             }
         }
