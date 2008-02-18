@@ -28,6 +28,18 @@
 
     $.fn.wysiwyg = function( options )
     {
+        var controls = {};
+
+        /**
+         * If the user set custom controls, we catch it, and merge with the
+         * defaults controls later.
+         */
+        if ( options.controls )
+        {
+            var controls = options.controls;
+            delete options.controls;
+        }
+
         var options = $.extend({
             html     : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
 
@@ -158,6 +170,8 @@
                 }
             }
         }, options);
+
+        $.extend(options.controls, controls);
 
         // not break the chain
         return this.each(function()
