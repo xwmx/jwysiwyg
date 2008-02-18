@@ -29,9 +29,12 @@
     $.fn.wysiwyg = function( options )
     {
         var options = $.extend({
-            debug  : false,
-            html   : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
-            target : {
+            html     : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
+
+            debug    : false,
+            autoSave : true,
+
+            target   : {
                 bold : {
                     tags : ['b', 'strong'],
                     css  : { fontWeight : 'bold' }
@@ -67,6 +70,8 @@
 
         init : function( element, options )
         {
+            var self = this;
+
             this.editor = element;
             this.options = options || {};
 
@@ -222,18 +227,14 @@
             if ( this.initialContent.length == 0 )
                 this.setContent('<br />');
 
-            var self = this;
-
-            /**
-             * @link http://code.google.com/p/jwysiwyg/issues/detail?id=11
-             */
-            $('form').submit(function() { self.saveContent(); });
-            $( $(this.editor).document() ).keydown(function() { self.saveContent(); });
-            $( $(this.editor).document() ).mousedown(function() { self.saveContent(); });
+            if ( this.options.autoSave )
+                $('form').submit(function() { self.saveContent(); });
         },
 
         initFrame : function()
         {
+            var self = this;
+
             this.editorDoc = $(this.editor).document();
             this.editorDoc.open();
             this.editorDoc.write(
@@ -248,8 +249,6 @@
                 this.editorDoc.designMode = 'on';
                 this.editorDoc_designMode = true;
             } catch ( e ) {
-                var self = this;
-
                 // Will fail on Gecko if the editor is placed in an hidden container element
                 // The design mode will be set ones the editor is focused
 
@@ -267,12 +266,16 @@
 
             if ( this.options.target )
             {
-                var self = this;
+                $(this.editorDoc).click(function( event ) { self.checkTargets( event.target ? event.target : event.srcElement); });
+            }
 
-                $(this.editorDoc).click(function( event )
-                {
-                    self.checkTargets(event.target);
-                });
+            if ( this.options.autoSave )
+            {
+                /**
+                 * @link http://code.google.com/p/jwysiwyg/issues/detail?id=11
+                 */
+                $(this.editorDoc).keydown(function() { self.saveContent(); });
+                $(this.editorDoc).mousedown(function() { self.saveContent(); });
             }
         },
 
@@ -301,6 +304,7 @@
                 $('<a><!-- --></a>').addClass(className || cmd)
             ).mousedown(function() {
                 if ( fn ) fn(self); else self.editorDoc.execCommand(cmd, false, args);
+                if ( self.options.autoSave ) self.saveContent();
             }).appendTo( this.panel );
         },
 
@@ -339,8 +343,6 @@
                     }
                 }
             }
-
-            return false;
         }
     });
 })(jQuery);
