@@ -28,150 +28,46 @@
 
     $.fn.wysiwyg = function( options )
     {
+        if ( arguments.length > 0 && arguments[0].constructor == String )
+        {
+            var action = arguments[0].toString();
+            var params = [];
+
+            for ( var i = 1; i < arguments.length; i++ )
+                params[i - 1] = arguments[i];
+
+            if ( action in Wysiwyg )
+            {
+                return this.each(function()
+                {
+                    Wysiwyg[action].apply(this, params);
+                });
+            }
+            else return this;
+        }
+
         var controls = {};
 
         /**
          * If the user set custom controls, we catch it, and merge with the
          * defaults controls later.
          */
-        if ( options.controls )
+        if ( options && options.length > 0 && options.controls )
         {
             var controls = options.controls;
             delete options.controls;
         }
 
         var options = $.extend({
-            html     : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
+            html : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
 
             debug    : false,
             autoSave : true,
 
-            controls : {
-                bold          : { visible : true, tags : ['b', 'strong'], css : { fontWeight : 'bold' } },
-                italic        : { visible : true, tags : ['i', 'em'], css : { fontStyle : 'italic' } },
-                strikeThrough : { visible : false, tags : ['s', 'strike'], css : { textDecoration : 'line-through' } },
-                underline     : { visible : false, tags : ['u'], css : { textDecoration : 'underline' } },
-
-                separator00 : { visible : false, separator : true },
-
-                justifyLeft   : { visible : false, css : { textAlign : 'left' } },
-                justifyCenter : { visible : false, tags : ['center'], css : { textAlign : 'center' } },
-                justifyRight  : { visible : false, css : { textAlign : 'right' } },
-                justifyFull   : { visible : false, css : { textAlign : 'justify' } },
-
-                separator01 : { visible : false, separator : true },
-
-                indent  : { visible : false },
-                outdent : { visible : false },
-
-                separator02 : { visible : false, separator : true },
-
-                subscript   : { visible : false, tags : ['sub'] },
-                superscript : { visible : false, tags : ['sup'] },
-
-                separator03 : { visible : false, separator : true },
-
-                undo : { visible : false },
-                redo : { visible : false },
-
-                separator04 : { visible : false, separator : true },
-
-                insertOrderedList    : { visible : false, tags : ['ol'] },
-                insertUnorderedList  : { visible : false, tags : ['ul'] },
-                insertHorizontalRule : { visible : false, tags : ['hr'] },
-
-                separator05 : { separator : true },
-
-                createLink : {
-                    visible : true,
-                    exec    : function( self )
-                    {
-                        if ( $.browser.msie )
-                            self.editorDoc.execCommand('createLink', true, null);
-                        else
-                        {
-                            var szURL = prompt('URL', 'http://');
-
-                            if ( szURL && szURL.length > 0 )
-                                self.editorDoc.execCommand('createLink', false, szURL);
-                        }
-                    },
-
-                    tags : ['a']
-                },
-
-                insertImage : {
-                    visible : true,
-                    exec    : function( self )
-                    {
-                        if ( $.browser.msie )
-                            self.editorDoc.execCommand('insertImage', true, null);
-                        else
-                        {
-                            var szURL = prompt('URL', 'http://');
-
-                            if ( szURL && szURL.length > 0 )
-                                self.editorDoc.execCommand('insertImage', false, szURL);
-                        }
-                    },
-
-                    tags : ['img']
-                },
-
-                separator06 : { separator : true },
-
-                h1mozilla : { visible : true && $.browser.mozilla, className : 'h1', command : 'heading', arguments : ['h1'], tags : ['h1'] },
-                h2mozilla : { visible : true && $.browser.mozilla, className : 'h2', command : 'heading', arguments : ['h2'], tags : ['h2'] },
-                h3mozilla : { visible : true && $.browser.mozilla, className : 'h3', command : 'heading', arguments : ['h3'], tags : ['h3'] },
-
-                h1 : { visible : true && !( $.browser.mozilla ), className : 'h1', command : 'formatBlock', arguments : ['h1'], tags : ['h1'] },
-                h2 : { visible : true && !( $.browser.mozilla ), className : 'h2', command : 'formatBlock', arguments : ['h2'], tags : ['h2'] },
-                h3 : { visible : true && !( $.browser.mozilla ), className : 'h3', command : 'formatBlock', arguments : ['h3'], tags : ['h3'] },
-
-                separator07 : { visible : false, separator : true },
-
-                cut   : { visible : false },
-                copy  : { visible : false },
-                paste : { visible : false },
-
-                separator08 : { separator : true && !( $.browser.msie ) },
-
-                increaseFontSize : { visible : true && !( $.browser.msie ), tags : ['big'] },
-                decreaseFontSize : { visible : true && !( $.browser.msie ), tags : ['small'] },
-
-                separator09 : { separator : true },
-
-                html : {
-                    visible : true,
-                    exec    : function( self )
-                    {
-                        if ( self.viewHTML )
-                        {
-                            self.setContent( $(self.original).val() );
-                            $(self.original).hide();
-                        }
-                        else
-                        {
-                            self.saveContent();
-                            $(self.original).show();
-                        }
-
-                        self.viewHTML = !( self.viewHTML );
-                    }
-                },
-
-                removeFormat : {
-                    visible : true,
-                    exec    : function( self )
-                    {
-                        self.editorDoc.execCommand('removeFormat', false, []);
-                        self.editorDoc.execCommand('unlink', false, []);
-                    }
-                }
-            }
+            controls : {}
         }, options);
 
-        $.extend(options.controls, controls);
+        $.extend(options.controls, Wysiwyg.TOOLBAR, controls);
 
         // not break the chain
         return this.each(function()
@@ -187,6 +83,148 @@
             : new Wysiwyg(element, options);
     }
 
+    $.extend(Wysiwyg, {
+        insertImage : function( url )
+        {
+            var self = $.data(this, 'wysiwyg');
+
+            if ( self.constructor == Wysiwyg )
+                self.editorDoc.execCommand('insertImage', false, url);
+        },
+
+        createLink : function( url )
+        {
+            var self = $.data(this, 'wysiwyg');
+
+            if ( self.constructor == Wysiwyg )
+                self.editorDoc.execCommand('createLink', false, url);
+        },
+
+        TOOLBAR : {
+            bold          : { visible : true, tags : ['b', 'strong'], css : { fontWeight : 'bold' } },
+            italic        : { visible : true, tags : ['i', 'em'], css : { fontStyle : 'italic' } },
+            strikeThrough : { visible : false, tags : ['s', 'strike'], css : { textDecoration : 'line-through' } },
+            underline     : { visible : false, tags : ['u'], css : { textDecoration : 'underline' } },
+
+            separator00 : { visible : false, separator : true },
+
+            justifyLeft   : { visible : false, css : { textAlign : 'left' } },
+            justifyCenter : { visible : false, tags : ['center'], css : { textAlign : 'center' } },
+            justifyRight  : { visible : false, css : { textAlign : 'right' } },
+            justifyFull   : { visible : false, css : { textAlign : 'justify' } },
+
+            separator01 : { visible : false, separator : true },
+
+            indent  : { visible : false },
+            outdent : { visible : false },
+
+            separator02 : { visible : false, separator : true },
+
+            subscript   : { visible : false, tags : ['sub'] },
+            superscript : { visible : false, tags : ['sup'] },
+
+            separator03 : { visible : false, separator : true },
+
+            undo : { visible : false },
+            redo : { visible : false },
+
+            separator04 : { visible : false, separator : true },
+
+            insertOrderedList    : { visible : false, tags : ['ol'] },
+            insertUnorderedList  : { visible : false, tags : ['ul'] },
+            insertHorizontalRule : { visible : false, tags : ['hr'] },
+
+            separator05 : { separator : true },
+
+            createLink : {
+                visible : true,
+                exec    : function( self )
+                {
+                    if ( $.browser.msie )
+                        self.editorDoc.execCommand('createLink', true, null);
+                    else
+                    {
+                        var szURL = prompt('URL', 'http://');
+
+                        if ( szURL && szURL.length > 0 )
+                            self.editorDoc.execCommand('createLink', false, szURL);
+                    }
+                },
+
+                tags : ['a']
+            },
+
+            insertImage : {
+                visible : true,
+                exec    : function( self )
+                {
+                    if ( $.browser.msie )
+                        self.editorDoc.execCommand('insertImage', true, null);
+                    else
+                    {
+                        var szURL = prompt('URL', 'http://');
+
+                        if ( szURL && szURL.length > 0 )
+                            self.editorDoc.execCommand('insertImage', false, szURL);
+                    }
+                },
+
+                tags : ['img']
+            },
+
+            separator06 : { separator : true },
+
+            h1mozilla : { visible : true && $.browser.mozilla, className : 'h1', command : 'heading', arguments : ['h1'], tags : ['h1'] },
+            h2mozilla : { visible : true && $.browser.mozilla, className : 'h2', command : 'heading', arguments : ['h2'], tags : ['h2'] },
+            h3mozilla : { visible : true && $.browser.mozilla, className : 'h3', command : 'heading', arguments : ['h3'], tags : ['h3'] },
+
+            h1 : { visible : true && !( $.browser.mozilla ), className : 'h1', command : 'formatBlock', arguments : ['h1'], tags : ['h1'] },
+            h2 : { visible : true && !( $.browser.mozilla ), className : 'h2', command : 'formatBlock', arguments : ['h2'], tags : ['h2'] },
+            h3 : { visible : true && !( $.browser.mozilla ), className : 'h3', command : 'formatBlock', arguments : ['h3'], tags : ['h3'] },
+
+            separator07 : { visible : false, separator : true },
+
+            cut   : { visible : false },
+            copy  : { visible : false },
+            paste : { visible : false },
+
+            separator08 : { separator : true && !( $.browser.msie ) },
+
+            increaseFontSize : { visible : true && !( $.browser.msie ), tags : ['big'] },
+            decreaseFontSize : { visible : true && !( $.browser.msie ), tags : ['small'] },
+
+            separator09 : { separator : true },
+
+            html : {
+                visible : true,
+                exec    : function( self )
+                {
+                    if ( self.viewHTML )
+                    {
+                        self.setContent( $(self.original).val() );
+                        $(self.original).hide();
+                    }
+                    else
+                    {
+                        self.saveContent();
+                        $(self.original).show();
+                    }
+
+                    self.viewHTML = !( self.viewHTML );
+                }
+            },
+
+            removeFormat : {
+                visible : true,
+                exec    : function( self )
+                {
+                    self.editorDoc.execCommand('removeFormat', false, []);
+                    self.editorDoc.execCommand('unlink', false, []);
+                }
+            }
+        }
+    });
+
     $.extend(Wysiwyg.prototype,
     {
         original : null,
@@ -201,6 +239,8 @@
 
             this.editor = element;
             this.options = options || {};
+
+            $.data(element, 'wysiwyg', this);
 
             var newX = element.width || element.clientWidth;
             var newY = element.height || element.clientHeight;
@@ -308,8 +348,8 @@
                 /**
                  * @link http://code.google.com/p/jwysiwyg/issues/detail?id=11
                  */
-                $(this.editorDoc).keydown(function() { self.saveContent(); });
-                $(this.editorDoc).mousedown(function() { self.saveContent(); });
+                $(this.editorDoc).keydown(function() { self.saveContent(); })
+                                 .mousedown(function() { self.saveContent(); });
             }
         },
 
@@ -362,7 +402,7 @@
                 {
                     this.appendMenu(
                         control.command || name, control.arguments || [],
-                        control.className || control.command || name, control.exec
+                        control.className || control.command || name || 'empty', control.exec
                     );
                 }
             }
@@ -373,7 +413,7 @@
             for ( var name in this.options.controls )
             {
                 var control = this.options.controls[name];
-                var className = control.className || control.command || name;
+                var className = control.className || control.command || name || 'empty';
 
                 $('.' + className, this.panel).removeClass('active');
 
