@@ -60,6 +60,7 @@
 
         var options = $.extend({
             html : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
+            css  : {},
 
             debug    : false,
             autoSave : true,
@@ -84,20 +85,20 @@
     }
 
     $.extend(Wysiwyg, {
-        insertImage : function( url )
+        insertImage : function( szURL )
         {
             var self = $.data(this, 'wysiwyg');
 
-            if ( self.constructor == Wysiwyg )
-                self.editorDoc.execCommand('insertImage', false, url);
+            if ( self.constructor == Wysiwyg && szURL && szURL.length > 0 )
+                self.editorDoc.execCommand('insertImage', false, szURL);
         },
 
-        createLink : function( url )
+        createLink : function( szURL )
         {
             var self = $.data(this, 'wysiwyg');
 
-            if ( self.constructor == Wysiwyg )
-                self.editorDoc.execCommand('createLink', false, url);
+            if ( self.constructor == Wysiwyg && szURL && szURL.length > 0 )
+                self.editorDoc.execCommand('createLink', false, szURL);
         },
 
         TOOLBAR : {
@@ -196,7 +197,7 @@
             separator09 : { separator : true },
 
             html : {
-                visible : true,
+                visible : false,
                 exec    : function( self )
                 {
                     if ( self.viewHTML )
@@ -350,6 +351,24 @@
                  */
                 $(this.editorDoc).keydown(function() { self.saveContent(); })
                                  .mousedown(function() { self.saveContent(); });
+            }
+
+            if ( this.options.css )
+            {
+                setTimeout(function()
+                {
+                    if ( self.options.css.constructor == String )
+                    {
+                        $(self.editorDoc)
+                        .find('head')
+                        .append(
+                            $('<link rel="stylesheet" type="text/css" media="screen" />')
+                            .attr('href', self.options.css)
+                        );
+                    }
+                    else
+                        $(self.editorDoc).find('body').css(self.options.css);
+                }, 0);
             }
         },
 
