@@ -1,13 +1,14 @@
 /**
- * WYSIWYG - jQuery plugin 1.0
+ * WYSIWYG - jQuery plugin 0.1
  *
- * Copyright (c) 2007 Juan M Martinez
+ * Copyright (c) 2008 Juan M Martinez
+ * http://plugins.jquery.com/project/jWYSIWYG
  *
  * Dual licensed under the MIT and GPL licenses:
  *   http://www.opensource.org/licenses/mit-license.php
  *   http://www.gnu.org/licenses/gpl.html
  *
- * Revision: $Id$
+ * $Id: $
  */
 (function( $ )
 {
@@ -52,7 +53,7 @@
          * If the user set custom controls, we catch it, and merge with the
          * defaults controls later.
          */
-        if ( options && options.length > 0 && options.controls )
+        if ( options && options.controls )
         {
             var controls = options.controls;
             delete options.controls;
@@ -68,7 +69,10 @@
             controls : {}
         }, options);
 
-        $.extend(options.controls, Wysiwyg.TOOLBAR, controls);
+        $.extend(options.controls, Wysiwyg.TOOLBAR);
+
+        for ( var control in controls )
+            $.extend(options.controls[control], controls[control]);
 
         // not break the chain
         return this.each(function()
