@@ -27,6 +27,16 @@
             return $(this);
     };
 
+    $.fn.documentSelection = function()
+    {
+        var element = this[0];
+
+        if ( element.contentWindow.document.selection )
+            return element.contentWindow.document.selection.createRange().text;
+        else
+            return element.contentWindow.getSelection().toString();
+    };
+
     $.fn.wysiwyg = function( options )
     {
         if ( arguments.length > 0 && arguments[0].constructor == String )
@@ -66,9 +76,11 @@
             debug    : false,
             autoSave : true,
 
-            controls : {}
+            controls : {},
+            messages : {}
         }, options);
 
+        $.extend(options.messages, Wysiwyg.MSGS_EN);
         $.extend(options.controls, Wysiwyg.TOOLBAR);
 
         for ( var control in controls )
@@ -102,7 +114,21 @@
             var self = $.data(this, 'wysiwyg');
 
             if ( self.constructor == Wysiwyg && szURL && szURL.length > 0 )
-                self.editorDoc.execCommand('createLink', false, szURL);
+            {
+                var selection = $(self.editor).documentSelection();
+
+                if ( selection.length > 0 )
+                {
+                    self.editorDoc.execCommand('unlink', false, []);
+                    self.editorDoc.execCommand('createLink', false, szURL);
+                }
+                else if ( self.options.messages.nonSelection )
+                    alert(self.options.messages.nonSelection);
+            }
+        },
+
+        MSGS_EN : {
+            nonSelection : 'select the text you wish to link'
         },
 
         TOOLBAR : {
@@ -145,15 +171,25 @@
                 visible : true,
                 exec    : function( self )
                 {
-                    if ( $.browser.msie )
-                        self.editorDoc.execCommand('createLink', true, null);
-                    else
-                    {
-                        var szURL = prompt('URL', 'http://');
+                    var selection = $(self.editor).documentSelection();
 
-                        if ( szURL && szURL.length > 0 )
-                            self.editorDoc.execCommand('createLink', false, szURL);
+                    if ( selection.length > 0 )
+                    {
+                        if ( $.browser.msie )
+                            self.editorDoc.execCommand('createLink', true, null);
+                        else
+                        {
+                            var szURL = prompt('URL', 'http://');
+
+                            if ( szURL && szURL.length > 0 )
+                            {
+                                self.editorDoc.execCommand('unlink', false, []);
+                                self.editorDoc.execCommand('createLink', false, szURL);
+                            }
+                        }
                     }
+                    else if ( self.options.messages.nonSelection )
+                        alert(self.options.messages.nonSelection);
                 },
 
                 tags : ['a']
@@ -304,7 +340,7 @@
             this.initFrame();
 
             if ( this.initialContent.length == 0 )
-                this.setContent('<br />');
+                this.setContent('');
 
             if ( this.options.autoSave )
                 $('form').submit(function() { self.saveContent(); });
@@ -341,6 +377,14 @@
                         } catch ( e ) {}
                     }
                 });
+            }
+
+            if ( $.browser.msie )
+            {
+                /**
+                 * Remove the horrible border it has on IE.
+                 */
+                setTimeout(function() { $(self.editorDoc.body).css('border', 'none'); }, 0);
             }
 
             $(this.editorDoc).click(function( event )
