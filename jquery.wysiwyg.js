@@ -51,6 +51,9 @@
             {
                 return this.each(function()
                 {
+                    $.data(this, 'wysiwyg')
+                     .designMode();
+
                     Wysiwyg[action].apply(this, params);
                 });
             }
@@ -84,7 +87,12 @@
         $.extend(options.controls, Wysiwyg.TOOLBAR);
 
         for ( var control in controls )
-            $.extend(options.controls[control], controls[control]);
+        {
+            if ( control in options.controls )
+                $.extend(options.controls[control], controls[control]);
+            else
+                options.controls[control] = controls[control];
+        }
 
         // not break the chain
         return this.each(function()
@@ -169,27 +177,27 @@
 
             createLink : {
                 visible : true,
-                exec    : function( self )
+                exec    : function()
                 {
-                    var selection = $(self.editor).documentSelection();
+                    var selection = $(this.editor).documentSelection();
 
                     if ( selection.length > 0 )
                     {
                         if ( $.browser.msie )
-                            self.editorDoc.execCommand('createLink', true, null);
+                            this.editorDoc.execCommand('createLink', true, null);
                         else
                         {
                             var szURL = prompt('URL', 'http://');
 
                             if ( szURL && szURL.length > 0 )
                             {
-                                self.editorDoc.execCommand('unlink', false, []);
-                                self.editorDoc.execCommand('createLink', false, szURL);
+                                this.editorDoc.execCommand('unlink', false, []);
+                                this.editorDoc.execCommand('createLink', false, szURL);
                             }
                         }
                     }
-                    else if ( self.options.messages.nonSelection )
-                        alert(self.options.messages.nonSelection);
+                    else if ( this.options.messages.nonSelection )
+                        alert(this.options.messages.nonSelection);
                 },
 
                 tags : ['a']
@@ -197,16 +205,16 @@
 
             insertImage : {
                 visible : true,
-                exec    : function( self )
+                exec    : function()
                 {
                     if ( $.browser.msie )
-                        self.editorDoc.execCommand('insertImage', true, null);
+                        this.editorDoc.execCommand('insertImage', true, null);
                     else
                     {
                         var szURL = prompt('URL', 'http://');
 
                         if ( szURL && szURL.length > 0 )
-                            self.editorDoc.execCommand('insertImage', false, szURL);
+                            this.editorDoc.execCommand('insertImage', false, szURL);
                     }
                 },
 
@@ -238,29 +246,29 @@
 
             html : {
                 visible : false,
-                exec    : function( self )
+                exec    : function()
                 {
-                    if ( self.viewHTML )
+                    if ( this.viewHTML )
                     {
-                        self.setContent( $(self.original).val() );
-                        $(self.original).hide();
+                        this.setContent( $(this.original).val() );
+                        $(this.original).hide();
                     }
                     else
                     {
-                        self.saveContent();
-                        $(self.original).show();
+                        this.saveContent();
+                        $(this.original).show();
                     }
 
-                    self.viewHTML = !( self.viewHTML );
+                    this.viewHTML = !( this.viewHTML );
                 }
             },
 
             removeFormat : {
                 visible : true,
-                exec    : function( self )
+                exec    : function()
                 {
-                    self.editorDoc.execCommand('removeFormat', false, []);
-                    self.editorDoc.execCommand('unlink', false, []);
+                    this.editorDoc.execCommand('removeFormat', false, []);
+                    this.editorDoc.execCommand('unlink', false, []);
                 }
             }
         }
@@ -369,13 +377,7 @@
 
                 $(this.editorDoc).focus(function()
                 {
-                    if ( !( self.editorDoc_designMode ) )
-                    {
-                        try {
-                            self.editorDoc.designMode = 'on';
-                            self.editorDoc_designMode = true;
-                        } catch ( e ) {}
-                    }
+                    self.designMode();
                 });
             }
 
@@ -420,6 +422,17 @@
             }
         },
 
+        designMode : function()
+        {
+            if ( !( this.editorDoc_designMode ) )
+            {
+                try {
+                    this.editorDoc.designMode = 'on';
+                    this.editorDoc_designMode = true;
+                } catch ( e ) {}
+            }
+        },
+
         getContent : function()
         {
             return $( $(this.editor).document() ).find('body').html();
@@ -444,7 +457,7 @@
             $('<li></li>').append(
                 $('<a><!-- --></a>').addClass(className || cmd)
             ).mousedown(function() {
-                if ( fn ) fn(self); else self.editorDoc.execCommand(cmd, false, args);
+                if ( fn ) fn.apply(self); else self.editorDoc.execCommand(cmd, false, args);
                 if ( self.options.autoSave ) self.saveContent();
             }).appendTo( this.panel );
         },
