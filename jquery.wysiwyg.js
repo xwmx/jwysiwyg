@@ -76,8 +76,10 @@
             html : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
             css  : {},
 
-            debug    : false,
-            autoSave : true,
+            debug        : false,
+
+            autoSave     : true,  // http://code.google.com/p/jwysiwyg/issues/detail?id=11
+            rmUnwantedBr : true,  // http://code.google.com/p/jwysiwyg/issues/detail?id=15
 
             controls : {},
             messages : {}
@@ -446,7 +448,14 @@
         saveContent : function()
         {
             if ( this.original )
-                $(this.original).val( this.getContent() );
+            {
+                var content = this.getContent();
+
+                if ( this.options.rmUnwantedBr )
+                    content = ( content.substr(-4) == '<br>' ) ? content.substr(0, content.length - 4) : content;
+
+                $(this.original).val(content);
+            }
         },
 
         appendMenu : function( cmd, args, className, fn )
