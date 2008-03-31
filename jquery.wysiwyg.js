@@ -1,5 +1,5 @@
 /**
- * WYSIWYG - jQuery plugin 0.1
+ * WYSIWYG - jQuery plugin 0.2
  *
  * Copyright (c) 2008 Juan M Martinez
  * http://plugins.jquery.com/project/jWYSIWYG
@@ -73,7 +73,7 @@
         }
 
         var options = $.extend({
-            html : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>INITIAL_CONTENT</body></html>',
+            html : '<'+'?xml version="1.0" encoding="UTF-8"?'+'><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">STYLE_SHEET</head><body>INITIAL_CONTENT</body></html>',
             css  : {},
 
             debug        : false,
@@ -366,11 +366,20 @@
         initFrame : function()
         {
             var self = this;
+            var style = '';
+
+            /**
+             * @link http://code.google.com/p/jwysiwyg/issues/detail?id=14
+             */
+            if ( this.options.css && this.options.css.constructor == String )
+                style = '<link rel="stylesheet" type="text/css" media="screen" href="' + this.options.css + '" />';
 
             this.editorDoc = $(this.editor).document();
             this.editorDoc.open();
             this.editorDoc.write(
-                this.options.html.replace(/INITIAL_CONTENT/, this.initialContent)
+                this.options.html
+                    .replace(/INITIAL_CONTENT/, this.initialContent)
+                    .replace(/STYLE_SHEET/, style)
             );
             this.editorDoc.close();
             this.editorDoc.contentEditable = 'true';
@@ -426,12 +435,14 @@
                 {
                     if ( self.options.css.constructor == String )
                     {
-                        $(self.editorDoc)
-                        .find('head')
-                        .append(
-                            $('<link rel="stylesheet" type="text/css" media="screen" />')
-                            .attr('href', self.options.css)
-                        );
+                        /**
+                         * $(self.editorDoc)
+                         * .find('head')
+                         * .append(
+                         *     $('<link rel="stylesheet" type="text/css" media="screen" />')
+                         *     .attr('href', self.options.css)
+                         * );
+                         */
                     }
                     else
                         $(self.editorDoc).find('body').css(self.options.css);
