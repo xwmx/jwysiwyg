@@ -396,6 +396,14 @@
                 self.checkTargets( event.target ? event.target : event.srcElement);
             });
 
+            /**
+             * @link http://code.google.com/p/jwysiwyg/issues/detail?id=20
+             */
+            $(this.original).focus(function()
+            {
+                $(self.editorDoc.body).focus();
+            });
+
             if ( this.options.autoSave )
             {
                 /**
