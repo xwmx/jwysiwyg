@@ -137,6 +137,13 @@
             }
         },
 
+        clear : function()
+        {
+            var self = $.data(this, 'wysiwyg');
+                self.setContent('');
+                self.saveContent();
+        },
+
         MSGS_EN : {
             nonSelection : 'select the text you wish to link'
         },
