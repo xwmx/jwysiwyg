@@ -1,5 +1,5 @@
 /**
- * WYSIWYG - jQuery plugin 0.2
+ * WYSIWYG - jQuery plugin 0.3
  *
  * Copyright (c) 2008 Juan M Martinez
  * http://plugins.jquery.com/project/jWYSIWYG
@@ -80,6 +80,7 @@
 
             autoSave     : true,  // http://code.google.com/p/jwysiwyg/issues/detail?id=11
             rmUnwantedBr : true,  // http://code.google.com/p/jwysiwyg/issues/detail?id=15
+            brIE         : true,
 
             controls : {},
             messages : {}
@@ -448,6 +449,19 @@
                         $(self.editorDoc).find('body').css(self.options.css);
                 }, 0);
             }
+
+            $(this.editorDoc).keydown(function( event )
+            {
+                if ( $.browser.msie && self.options.brIE && event.keyCode == 13 )
+                {
+                    var rng = self.getRange();
+                        rng.pasteHTML('<br />');
+                        rng.collapse(false);
+                        rng.select();
+
+    				return false;
+                }
+            });
         },
 
         designMode : function()
@@ -459,6 +473,21 @@
                     this.editorDoc_designMode = true;
                 } catch ( e ) {}
             }
+        },
+
+        getSelection : function()
+        {
+            return ( window.getSelection ) ? window.getSelection() : document.selection;
+        },
+
+        getRange : function()
+        {
+            var selection = this.getSelection();
+
+            if ( !( selection ) )
+                return null;
+
+            return ( selection.rangeCount > 0 ) ? selection.getRangeAt(0) : selection.createRange();
         },
 
         getContent : function()
