@@ -112,12 +112,32 @@
     }
 
     $.extend(Wysiwyg, {
-        insertImage : function( szURL )
+        insertImage : function( szURL, attributes )
         {
             var self = $.data(this, 'wysiwyg');
 
             if ( self.constructor == Wysiwyg && szURL && szURL.length > 0 )
-                self.editorDoc.execCommand('insertImage', false, szURL);
+            {
+                if ( attributes )
+                {
+                    self.editorDoc.execCommand('insertImage', false, '#jwysiwyg#');
+                    var img = self.getElementByAttributeValue('img', 'src', '#jwysiwyg#');
+
+                    if ( img )
+                    {
+                        img.src = szURL;
+
+                        for ( var attribute in attributes )
+                        {
+                            img.setAttribute(attribute, attributes[attribute]);
+                        }
+                    }
+                }
+                else
+                {
+                    self.editorDoc.execCommand('insertImage', false, szURL);
+                }
+            }
         },
 
         createLink : function( szURL )
@@ -237,9 +257,9 @@
             h2mozilla : { visible : true && $.browser.mozilla, className : 'h2', command : 'heading', arguments : ['h2'], tags : ['h2'] },
             h3mozilla : { visible : true && $.browser.mozilla, className : 'h3', command : 'heading', arguments : ['h3'], tags : ['h3'] },
 
-            h1 : { visible : true && !( $.browser.mozilla ), className : 'h1', command : 'formatBlock', arguments : ['h1'], tags : ['h1'] },
-            h2 : { visible : true && !( $.browser.mozilla ), className : 'h2', command : 'formatBlock', arguments : ['h2'], tags : ['h2'] },
-            h3 : { visible : true && !( $.browser.mozilla ), className : 'h3', command : 'formatBlock', arguments : ['h3'], tags : ['h3'] },
+            h1 : { visible : true && !( $.browser.mozilla ), className : 'h1', command : 'formatBlock', arguments : ['Heading 1'], tags : ['h1'] },
+            h2 : { visible : true && !( $.browser.mozilla ), className : 'h2', command : 'formatBlock', arguments : ['Heading 2'], tags : ['h2'] },
+            h3 : { visible : true && !( $.browser.mozilla ), className : 'h3', command : 'formatBlock', arguments : ['Heading 3'], tags : ['h3'] },
 
             separator07 : { visible : false, separator : true },
 
@@ -588,6 +608,27 @@
                     } while ( elm = elm.parent() );
                 }
             }
+        },
+
+        getElementByAttributeValue : function( tagName, attributeName, attributeValue )
+        {
+            var elements = this.editorDoc.getElementsByTagName(tagName);
+
+            for ( var i = 0; i < elements.length; i++ )
+            {
+                var value = elements[i].getAttribute(attributeName);
+
+                if ( $.browser.msie )
+                {
+                    /** IE add full path, so I check by the last chars. */
+                    value = value.substr(value.length - attributeValue.length);
+                }
+
+                if ( value == attributeValue )
+                    return elements[i];
+            }
+
+            return false;
         }
     });
 })(jQuery);
