@@ -396,15 +396,6 @@
                 style = '<link rel="stylesheet" type="text/css" media="screen" href="' + this.options.css + '" />';
 
             this.editorDoc = $(this.editor).document();
-            this.editorDoc.open();
-            this.editorDoc.write(
-                this.options.html
-                    .replace(/INITIAL_CONTENT/, this.initialContent)
-                    .replace(/STYLE_SHEET/, style)
-            );
-            this.editorDoc.close();
-            this.editorDoc.contentEditable = 'true';
-
             this.editorDoc_designMode = false;
 
             try {
@@ -419,6 +410,15 @@
                     self.designMode();
                 });
             }
+
+            this.editorDoc.open();
+            this.editorDoc.write(
+                this.options.html
+                    .replace(/INITIAL_CONTENT/, this.initialContent)
+                    .replace(/STYLE_SHEET/, style)
+            );
+            this.editorDoc.close();
+            this.editorDoc.contentEditable = 'true';
 
             if ( $.browser.msie )
             {
