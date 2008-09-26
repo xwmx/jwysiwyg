@@ -158,6 +158,13 @@
             }
         },
 
+        setContent : function( newContent )
+        {
+            var self = $.data(this, 'wysiwyg');
+                self.setContent( newContent );
+                self.saveContent();
+        },
+
         clear : function()
         {
             var self = $.data(this, 'wysiwyg');
@@ -382,6 +389,12 @@
 
             if ( this.options.autoSave )
                 $('form').submit(function() { self.saveContent(); });
+
+            $('form').bind('reset', function()
+            {
+                self.setContent( self.initialContent );
+                self.saveContent();
+            });
         },
 
         initFrame : function()
@@ -447,6 +460,7 @@
                  * @link http://code.google.com/p/jwysiwyg/issues/detail?id=11
                  */
                 $(this.editorDoc).keydown(function() { self.saveContent(); })
+                                 .keyup(function() { self.saveContent(); })
                                  .mousedown(function() { self.saveContent(); });
             }
 
