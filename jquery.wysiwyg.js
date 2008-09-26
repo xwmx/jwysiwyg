@@ -86,8 +86,8 @@
             messages : {}
         }, options);
 
-        $.extend(options.messages, Wysiwyg.MSGS_EN);
-        $.extend(options.controls, Wysiwyg.TOOLBAR);
+        options.messages = $.extend(true, options.messages, Wysiwyg.MSGS_EN);
+        options.controls = $.extend(true, options.controls, Wysiwyg.TOOLBAR);
 
         for ( var control in controls )
         {
