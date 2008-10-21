@@ -380,7 +380,11 @@
             this.viewHTML = false;
 
             this.initialHeight = newY - 8;
-            this.initialContent = $(element).text();
+
+            /**
+             * @link http://code.google.com/p/jwysiwyg/issues/detail?id=52
+             */
+            this.initialContent = $(element).val();
 
             this.initFrame();
 
