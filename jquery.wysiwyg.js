@@ -1,7 +1,7 @@
 /**
- * WYSIWYG - jQuery plugin 0.3
+ * WYSIWYG - jQuery plugin 0.5
  *
- * Copyright (c) 2008 Juan M Martinez
+ * Copyright (c) 2008-2009 Juan M Martinez
  * http://plugins.jquery.com/project/jWYSIWYG
  *
  * Dual licensed under the MIT and GPL licenses:
