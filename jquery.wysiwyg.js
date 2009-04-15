@@ -561,7 +561,10 @@
             ).mousedown(function() {
                 if ( fn ) fn.apply(self); else self.editorDoc.execCommand(cmd, false, args);
                 if ( self.options.autoSave ) self.saveContent();
-            }).appendTo( this.panel );
+            }).attr('title', cmd[0].toUpperCase()
+                           + cmd.substring(1).replace(/([a-z])([A-Z])/g, '$1 $2')
+                           + (( args != '' ) ? ' ' : '') + args
+            ).appendTo( this.panel );
         },
 
         appendMenuSeparator : function()
